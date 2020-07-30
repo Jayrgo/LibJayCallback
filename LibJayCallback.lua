@@ -49,14 +49,14 @@ do -- tnew, tdel
 end
 
 local packargs
-do -- pack2
+do -- packargs
     local select = select
     ---@return table args
     function packargs(...) return {n = select("#", ...), ...} end
 end
 
 local unpackargs
-do -- pack2
+do -- unpackargs
     local unpack = unpack
     ---@param t table
     function unpackargs(t) return unpack(t, 1, t.n) end
@@ -75,11 +75,9 @@ do -- getkey
             local counter = 1
             local len = strlen(str)
             for i = 1, len, 3 do
-                counter =
-                    fmod(counter * 8161, 4294967279) + -- 2^32 - 17: Prime!
-                        (strbyte(str, i) * 16776193) +
-                        ((strbyte(str, i + 1) or (len - i + 256)) * 8372226) +
-                        ((strbyte(str, i + 2) or (len - i + 256)) * 3932164)
+                counter = fmod(counter * 8161, 4294967279) + -- 2^32 - 17: Prime!
+                (strbyte(str, i) * 16776193) + ((strbyte(str, i + 1) or (len - i + 256)) * 8372226) +
+                              ((strbyte(str, i + 2) or (len - i + 256)) * 3932164)
             end
             return fmod(counter, 4294967291) -- 2^32 - 5: Prime (and different from the prime in the loop)
         end
@@ -94,16 +92,14 @@ do -- getkey
                 local v = tostring(function() end) .. "%s"
                 t[k] = v
                 return v
-            end
+            end,
         })
 
         local format = format
         local type = type
         ---@param str string
         ---@return string str
-        function getstring(arg)
-            return format(prefixes[type(arg)], tostring(arg))
-        end
+        function getstring(arg) return format(prefixes[type(arg)], tostring(arg)) end
     end
 
     local select = select
@@ -111,9 +107,7 @@ do -- getkey
     ---@return string key
     function getkey(...)
         local keys = tnew()
-        for i = 1, select("#", ...) do
-            keys[i] = getstring(select(i, ...))
-        end
+        for i = 1, select("#", ...) do keys[i] = getstring(select(i, ...)) end
         local key = strhash(tconcat(keys))
         tdel(keys)
         return key
@@ -151,9 +145,7 @@ local CopyTable = CopyTable
 ---@param event string
 local function TriggerEvent(self, event, ...)
     if type(event) ~= "string" then
-        error(format(
-                  "Usage: %s:TriggerEvent(event[, ...]): 'event' - string expected got %s",
-                  MAJOR, type(event)), 2)
+        error(format("Usage: %s:TriggerEvent(event[, ...]): 'event' - string expected got %s", MAJOR, type(event)), 2)
     end
 
     local events = self.events[event]
@@ -167,9 +159,7 @@ end
 
 local function xTriggerEvent(self, event, ...)
     if type(event) ~= "string" then
-        error(format(
-                  "Usage: %s:xTriggerEvent(event[, ...]): 'event' - string expected got %s",
-                  MAJOR, type(event)), 2)
+        error(format("Usage: %s:xTriggerEvent(event[, ...]): 'event' - string expected got %s", MAJOR, type(event)), 2)
     end
 
     local events = self.events[event]
@@ -185,9 +175,7 @@ end
 ---@param event string
 local function Wipe(self, event)
     if type(event) ~= "string" and type(event) ~= "nil" then
-        error(format(
-                  "Usage: %s:Wipe(event): 'event' - string or nil expected got %s",
-                  MAJOR, type(event)), 2)
+        error(format("Usage: %s:Wipe(event): 'event' - string or nil expected got %s", MAJOR, type(event)), 2)
     end
     if event then
         if not self.events[event] then return end
@@ -209,37 +197,29 @@ function lib:New(target, RegisterCallback, UnregisterCallback)
                   "Usage: %s:New(target[, RegisterCallback[, UnregisterCallback]]): 'target' - table expected got %s",
                   MAJOR, type(target)), 2)
     end
-    RegisterCallback = RegisterCallback and RegisterCallback or
-                           "RegisterCallback"
+    RegisterCallback = RegisterCallback and RegisterCallback or "RegisterCallback"
     if type(RegisterCallback) ~= "string" then
         error(format(
                   "Usage: %s:New(target[, RegisterCallback[, UnregisterCallback]]): 'RegisterCallback' - string expected got %s",
                   MAJOR, type(RegisterCallback)), 2)
     end
-    UnregisterCallback = UnregisterCallback and UnregisterCallback or
-                             "UnregisterCallback"
+    UnregisterCallback = UnregisterCallback and UnregisterCallback or "UnregisterCallback"
     if type(UnregisterCallback) ~= "string" then
         error(format(
                   "Usage: %s:New(target[, RegisterCallback[, UnregisterCallback]]): 'UnregisterCallback' - string expected got %s",
                   MAJOR, type(UnregisterCallback)), 2)
     end
 
-    local callbacks = {
-        events = {},
-        TriggerEvent = TriggerEvent,
-        xTriggerEvent = xTriggerEvent,
-        Wipe = Wipe
-    }
+    local callbacks = {events = {}, TriggerEvent = TriggerEvent, xTriggerEvent = xTriggerEvent, Wipe = Wipe}
 
     ---@param self table
     ---@param event string
-    ---@param callback function
+    ---@param callback function | table | string
     ---@vararg any
     target[RegisterCallback] = function(self, event, callback, ...) -- luacheck: ignore 432
         if type(event) ~= "string" then
-            error(format(
-                      "Usage: %s:%s(event[, object], callback[, ...]): 'event' - string expected got %s",
-                      MAJOR, RegisterCallback, type(event)), 2)
+            error(format("Usage: %s:%s(event[, object], callback[, ...]): 'event' - string expected got %s", MAJOR,
+                         RegisterCallback, type(event)), 2)
         end
 
         local regKey, regFunc
@@ -247,13 +227,10 @@ function lib:New(target, RegisterCallback, UnregisterCallback)
             local object, callback = callback, select(1, ...) -- luacheck: ignore 422
             if type(callback) == "function" then
                 regKey = getkey(object, callback, ...)
-                regFunc = select("#", ...) > 1 and
-                              getFunc(callback, select(2, ...)) or
-                              getFunc(callback)
+                regFunc = select("#", ...) > 1 and getFunc(callback, select(2, ...)) or getFunc(callback)
             elseif type(callback) == "string" then
                 regKey = getkey(object, object[callback], ...)
-                regFunc = select("#", ...) > 1 and
-                              getFunc(object[callback], object, select(2, ...)) or
+                regFunc = select("#", ...) > 1 and getFunc(object[callback], object, select(2, ...)) or
                               getFunc(object[callback], object)
             else
                 error(format(
@@ -275,20 +252,17 @@ function lib:New(target, RegisterCallback, UnregisterCallback)
             isFirst = true
         end
         callbacks.events[event][regKey] = regFunc
-        if isFirst then
-            safecall(callbacks.OnEventRegistered, self, event)
-        end
+        if isFirst then safecall(callbacks.OnEventRegistered, self, event) end
     end
 
     ---@param self table
     ---@param event string
-    ---@param object table | function
-    ---@param callback function | string
+    ---@param callback function | table | string
+    ---@vararg any
     target[UnregisterCallback] = function(self, event, callback, ...) -- luacheck: ignore 432
         if type(event) ~= "string" then
-            error(format(
-                      "Usage: %s:%s(event[, object], callback): 'event' - string expected got %s",
-                      MAJOR, UnregisterCallback, type(event)), 2)
+            error(format("Usage: %s:%s(event[, object], callback): 'event' - string expected got %s", MAJOR,
+                         UnregisterCallback, type(event)), 2)
         end
 
         local regKey
