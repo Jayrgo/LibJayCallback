@@ -194,7 +194,7 @@ local function Wipe(self, event)
         self.events[event] = nil
         safecall(self.OnEventUnregistered, self, event)
     else
-        for event in pairs(self.events) do self:Wipe(event) end
+        for event in pairs(self.events) do self:Wipe(event) end -- luacheck: ignore 422
     end
 end
 
@@ -235,7 +235,7 @@ function lib:New(target, RegisterCallback, UnregisterCallback)
     ---@param event string
     ---@param callback function
     ---@vararg any
-    target[RegisterCallback] = function(self, event, callback, ...)
+    target[RegisterCallback] = function(self, event, callback, ...) -- luacheck: ignore 432
         if type(event) ~= "string" then
             error(format(
                       "Usage: %s:%s(event[, object], callback[, ...]): 'event' - string expected got %s",
@@ -244,7 +244,7 @@ function lib:New(target, RegisterCallback, UnregisterCallback)
 
         local regKey, regFunc
         if type(callback) == "table" then
-            local object, callback = callback, select(1, ...)
+            local object, callback = callback, select(1, ...) -- luacheck: ignore 422
             if type(callback) == "function" then
                 regKey = getkey(object, callback, ...)
                 regFunc = select("#", ...) > 1 and
@@ -284,7 +284,7 @@ function lib:New(target, RegisterCallback, UnregisterCallback)
     ---@param event string
     ---@param object table | function
     ---@param callback function | string
-    target[UnregisterCallback] = function(self, event, callback, ...)
+    target[UnregisterCallback] = function(self, event, callback, ...) -- luacheck: ignore 432
         if type(event) ~= "string" then
             error(format(
                       "Usage: %s:%s(event[, object], callback): 'event' - string expected got %s",
@@ -293,7 +293,7 @@ function lib:New(target, RegisterCallback, UnregisterCallback)
 
         local regKey
         if type(callback) == "table" then
-            local object, callback = callback, select(1, ...)
+            local object, callback = callback, select(1, ...) -- luacheck: ignore 422
             if type(callback) == "function" then
                 regKey = getkey(object, callback, ...)
             elseif type(callback) == "string" then
