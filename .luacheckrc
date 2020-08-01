@@ -6,4 +6,13 @@ ignore = {
     "211", -- Unused local variable
     "212", -- Unused argument
 }
-globals = {"CopyTable", "format", "geterrorhandler", "LibStub", "strbyte", "strlen", "wipe"}
+globals = {}
+read_globals = {
+    "CopyTable", --
+    "LibStub", --
+    "format", --
+    "geterrorhandler", --
+    "strbyte", --
+    "strlen", --
+    "wipe", --
+}
